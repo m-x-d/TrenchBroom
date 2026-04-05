@@ -103,13 +103,12 @@ void GamesPreferencePane::createGui()
   auto* layout = new QHBoxLayout{};
   layout->setContentsMargins(QMargins{});
   layout->setSpacing(0);
-  setLayout(layout);
-
   layout->addLayout(glbLayout);
   layout->addWidget(new BorderLine(BorderLine::Direction::Vertical));
   layout->addSpacing(LayoutConstants::MediumVMargin);
   layout->addLayout(stwLayout, 1);
 
+  createScrollableContent(layout);
   setMinimumWidth(600);
 
   connect(

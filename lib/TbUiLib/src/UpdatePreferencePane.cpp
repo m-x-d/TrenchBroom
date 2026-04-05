@@ -44,16 +44,16 @@ UpdatePreferencePane::UpdatePreferencePane(AppController& appController, QWidget
 
 void UpdatePreferencePane::createGui()
 {
-  auto* viewPreferences = createUpdatePreferences();
+  auto* updatePreferences = createUpdatePreferences();
 
   auto* layout = new QVBoxLayout{};
   layout->setContentsMargins(QMargins{});
   layout->setSpacing(0);
-
   layout->addSpacing(LayoutConstants::NarrowVMargin);
-  layout->addWidget(viewPreferences, 1);
+  layout->addWidget(updatePreferences, 1);
   layout->addSpacing(LayoutConstants::MediumVMargin);
-  setLayout(layout);
+
+  createScrollableContent(layout);
 }
 
 QWidget* UpdatePreferencePane::createUpdatePreferences()

@@ -96,11 +96,11 @@ void ViewPreferencePane::createGui()
   auto* layout = new QVBoxLayout{};
   layout->setContentsMargins(QMargins{});
   layout->setSpacing(0);
-
   layout->addSpacing(LayoutConstants::NarrowVMargin);
   layout->addWidget(viewPreferences, 1);
   layout->addSpacing(LayoutConstants::MediumVMargin);
-  setLayout(layout);
+
+  createScrollableContent(layout);
 }
 
 QWidget* ViewPreferencePane::createViewPreferences()
