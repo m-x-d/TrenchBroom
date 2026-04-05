@@ -47,6 +47,14 @@
 
 namespace tb::ui
 {
+namespace
+{
+
+constexpr int PreferenceDialogMinWidth = 800;
+constexpr int PreferenceDialogMinHeight = 300;
+
+} // namespace
+
 enum class PreferenceDialog::PrefPane
 {
   First = 0,
@@ -69,6 +77,7 @@ PreferenceDialog::PreferenceDialog(
   setWindowTitle("Preferences");
   setWindowIconTB(this);
   createGui();
+  setMinimumSize(PreferenceDialogMinWidth, PreferenceDialogMinHeight);
   switchToPane(PrefPane::First);
   currentPane()->updateControls();
 

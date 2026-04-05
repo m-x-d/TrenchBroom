@@ -124,7 +124,6 @@ They may contain new features or bug fixes that are not yet part of a stable rel
   m_layout->addRow(preReleaseInfo);
 
   auto* widget = new QWidget{};
-  widget->setMinimumWidth(400);
   widget->setLayout(m_layout);
   return widget;
 }

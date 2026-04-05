@@ -69,7 +69,6 @@ void GamesPreferencePane::createGui()
 {
   m_gameListBox = new GameListBox{m_appController};
   m_gameListBox->selectGame(0);
-  m_gameListBox->setMaximumWidth(220);
   m_gameListBox->setMinimumHeight(300);
 
   m_defaultPage = createEmptyWidget(tr("Select a game."));
