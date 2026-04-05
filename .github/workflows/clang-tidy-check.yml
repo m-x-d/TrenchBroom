@@ -74,9 +74,11 @@ jobs:
           version: 18
           style: 'file'  # Use .clang-format config file. 
           tidy-checks: '' # Use .clang-tidy config file.
+          extensions: 'c,h,C,H,cpp,hpp,cc,hh,c++,h++,cxx,hxx,fragsh,vertsh'
           files-changed-only: true
           database: ${{github.workspace}}/build
           ignore: 'build|vcpkg-overlay-ports|lib/TbUiLib/src/GetVersion.cpp'
+          ignore-tidy: 'app/TrenchBroom/resources/shader'
           step-summary: true
           thread-comments: true
       - name: Fail fast?!
