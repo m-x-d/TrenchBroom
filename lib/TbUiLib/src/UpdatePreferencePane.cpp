@@ -22,6 +22,7 @@
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QtGlobal>
 
 #include "PreferenceManager.h"
@@ -64,38 +65,29 @@ To download and install an available update, click on the link labeled "Update a
 
   m_autoCheckForUpdates = new QCheckBox{};
   connect(m_autoCheckForUpdates, &QCheckBox::checkStateChanged, [&](const auto state) {
-    if (!m_disableNotifiers)
-    {
-      const auto value = state == Qt::Checked;
-      auto& prefs = PreferenceManager::instance();
-      prefs.set(Preferences::AutoCheckForUpdates, value);
-    }
+    const auto value = state == Qt::Checked;
+    auto& prefs = PreferenceManager::instance();
+    prefs.set(Preferences::AutoCheckForUpdates, value);
   });
 
   m_includePreReleaseUpdates = new QCheckBox{};
   connect(
     m_includePreReleaseUpdates, &QCheckBox::checkStateChanged, [&](const auto state) {
-      if (!m_disableNotifiers)
-      {
-        const auto value = state == Qt::Checked;
-        auto& prefs = PreferenceManager::instance();
-        prefs.set(Preferences::IncludePreReleaseUpdates, value);
+      const auto value = state == Qt::Checked;
+      auto& prefs = PreferenceManager::instance();
+      prefs.set(Preferences::IncludePreReleaseUpdates, value);
 
-        m_appController.updater().reset();
-      }
+      m_appController.updater().reset();
     });
 
   m_includeDraftReleaseUpdates = new QCheckBox{};
   connect(
     m_includeDraftReleaseUpdates, &QCheckBox::checkStateChanged, [&](const auto state) {
-      if (!m_disableNotifiers)
-      {
-        const auto value = state == Qt::Checked;
-        auto& prefs = PreferenceManager::instance();
-        prefs.set(Preferences::IncludeDraftReleaseUpdates, value);
+      const auto value = state == Qt::Checked;
+      auto& prefs = PreferenceManager::instance();
+      prefs.set(Preferences::IncludeDraftReleaseUpdates, value);
 
-        m_appController.updater().reset();
-      }
+      m_appController.updater().reset();
     });
 
   auto* preReleaseInfo = new QLabel{tr(
@@ -143,9 +135,13 @@ void UpdatePreferencePane::doResetToDefaults()
 
 void UpdatePreferencePane::updateControls()
 {
+  const auto autoCheckForUpdatesBlocker = QSignalBlocker{m_autoCheckForUpdates};
+  const auto includePreReleaseUpdatesBlocker = QSignalBlocker{m_includePreReleaseUpdates};
+  const auto includeDraftReleaseUpdatesBlocker =
+    QSignalBlocker{m_includeDraftReleaseUpdates};
+
   auto& prefs = PreferenceManager::instance();
 
-  const auto disableNotifiers = kdl::set_temp{m_disableNotifiers, true};
   m_autoCheckForUpdates->setChecked(
     prefs.getPendingValue(Preferences::AutoCheckForUpdates));
   m_includePreReleaseUpdates->setChecked(

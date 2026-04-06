@@ -23,6 +23,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QLabel>
+#include <QSignalBlocker>
 #include <QtGlobal>
 
 #include "PreferenceManager.h"
@@ -299,6 +300,23 @@ void ViewPreferencePane::doResetToDefaults()
 
 void ViewPreferencePane::updateControls()
 {
+  const auto layoutBlocker = QSignalBlocker{m_layoutCombo};
+  const auto link2DCamerasBlocker = QSignalBlocker{m_link2dCameras};
+  const auto brightnessBlocker = QSignalBlocker{m_brightnessSlider};
+  const auto gridAlphaBlocker = QSignalBlocker{m_gridAlphaSlider};
+  const auto fovBlocker = QSignalBlocker{m_fovSlider};
+
+  const auto filterModeBlocker = QSignalBlocker{m_filterModeCombo};
+
+  const auto showAxesBlocker = QSignalBlocker{m_showAxes};
+  const auto enableMsaaBlocker = QSignalBlocker{m_enableMsaa};
+  const auto themeBlocker = QSignalBlocker{m_themeCombo};
+
+  const auto materialBrowserIconSizeBlocker =
+    QSignalBlocker{m_materialBrowserIconSizeCombo};
+
+  const auto rendererFontSizeBlocker = QSignalBlocker{m_rendererFontSizeCombo};
+
   auto& prefs = PreferenceManager::instance();
 
   m_layoutCombo->setCurrentIndex(prefs.getPendingValue(Preferences::MapViewLayout));
