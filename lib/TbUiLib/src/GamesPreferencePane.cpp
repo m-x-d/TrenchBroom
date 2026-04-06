@@ -69,7 +69,6 @@ void GamesPreferencePane::createGui()
 {
   m_gameListBox = new GameListBox{m_appController};
   m_gameListBox->selectGame(0);
-  m_gameListBox->setMaximumWidth(220);
   m_gameListBox->setMinimumHeight(300);
 
   m_defaultPage = createEmptyWidget(tr("Select a game."));
@@ -104,13 +103,12 @@ void GamesPreferencePane::createGui()
   auto* layout = new QHBoxLayout{};
   layout->setContentsMargins(QMargins{});
   layout->setSpacing(0);
-  setLayout(layout);
-
   layout->addLayout(glbLayout);
   layout->addWidget(new BorderLine(BorderLine::Direction::Vertical));
   layout->addSpacing(LayoutConstants::MediumVMargin);
   layout->addLayout(stwLayout, 1);
 
+  createScrollableContent(layout);
   setMinimumWidth(600);
 
   connect(

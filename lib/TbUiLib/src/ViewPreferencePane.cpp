@@ -96,11 +96,11 @@ void ViewPreferencePane::createGui()
   auto* layout = new QVBoxLayout{};
   layout->setContentsMargins(QMargins{});
   layout->setSpacing(0);
-
   layout->addSpacing(LayoutConstants::NarrowVMargin);
   layout->addWidget(viewPreferences, 1);
   layout->addSpacing(LayoutConstants::MediumVMargin);
-  setLayout(layout);
+
+  createScrollableContent(layout);
 }
 
 QWidget* ViewPreferencePane::createViewPreferences()
@@ -214,7 +214,6 @@ QWidget* ViewPreferencePane::createViewPreferences()
   layout->addSection("Fonts");
   layout->addRow("Renderer Font Size", m_rendererFontSizeCombo);
 
-  viewBox->setMinimumWidth(400);
   viewBox->setLayout(layout);
 
   return viewBox;

@@ -24,6 +24,7 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QScreen>
 #include <QStackedWidget>
 #include <QToolBar>
 #include <QToolButton>
@@ -43,10 +44,19 @@
 #include "ui/PreferencePane.h"
 #include "ui/ViewPreferencePane.h"
 
+#include <algorithm>
 #include <filesystem>
 
 namespace tb::ui
 {
+namespace
+{
+
+constexpr int PreferenceDialogMinWidth = 800;
+constexpr int PreferenceDialogMinHeight = 300;
+
+} // namespace
+
 enum class PreferenceDialog::PrefPane
 {
   First = 0,
@@ -69,8 +79,17 @@ PreferenceDialog::PreferenceDialog(
   setWindowTitle("Preferences");
   setWindowIconTB(this);
   createGui();
+  setMinimumSize(PreferenceDialogMinWidth, PreferenceDialogMinHeight);
   switchToPane(PrefPane::First);
   currentPane()->updateControls();
+
+  const auto preferredSize = initialDialogSize();
+  if (const auto* currentScreen = screen())
+  {
+    const auto availableSize = currentScreen->availableGeometry().size();
+    setMaximumSize(availableSize);
+    resize(preferredSize.boundedTo(availableSize));
+  }
 
   connectObservers();
 }
@@ -192,6 +211,24 @@ void PreferenceDialog::createGui()
 #endif
   layout->addWidget(m_stackedWidget, 1);
   layout->addLayout(wrapDialogButtonBox(m_buttonBox));
+}
+
+QSize PreferenceDialog::initialDialogSize() const
+{
+  const auto numPanes = m_stackedWidget->count();
+  contract_assert(numPanes > 0);
+
+  const auto paneHeights =
+    std::views::iota(0, numPanes) | std::views::transform([&](const auto i) {
+      const auto* pane = static_cast<PreferencePane*>(m_stackedWidget->widget(i));
+      return pane->contentSizeHint().height();
+    });
+
+  const auto maxPaneHeight = *std::ranges::max_element(paneHeights);
+  const auto frameHeight = sizeHint().height() - m_stackedWidget->sizeHint().height();
+  const auto initialWidth = std::max(sizeHint().width(), PreferenceDialogMinWidth);
+  const auto initialHeight = frameHeight + maxPaneHeight;
+  return {initialWidth, initialHeight};
 }
 
 void PreferenceDialog::switchToPane(const PrefPane pane)

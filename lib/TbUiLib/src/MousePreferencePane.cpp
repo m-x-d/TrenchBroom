@@ -151,8 +151,7 @@ void MousePreferencePane::createGui()
       new QLabel{"Turn mouse wheel while holding right mouse button in 3D view to "
                  "adjust speed on the fly."}));
 
-  setLayout(layout);
-  setMinimumWidth(400);
+  createScrollableContent(layout);
 }
 
 void MousePreferencePane::bindEvents()
