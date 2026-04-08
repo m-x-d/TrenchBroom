@@ -27,6 +27,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QPushButton>
+#include <QSignalBlocker>
 #include <QStackedWidget>
 #include <QToolButton>
 #include <QWidget>
@@ -336,11 +337,13 @@ void GamePreferencePane::updateControls()
   // Refresh tool paths from preferences
   for (const auto& [tool, toolPathEditor] : m_toolPathEditors)
   {
+    const auto toolPathBlocker = QSignalBlocker{toolPathEditor};
     const auto& toolPath = prefs.getPendingValue(tool->pathPreference);
     toolPathEditor->setText(pathAsQString(toolPath));
   }
 
   // Refresh game path
+  const auto gamePathBlocker = QSignalBlocker{m_gamePathText};
   const auto gamePath = prefs.getPendingValue(m_gameInfo.gamePathPreference);
   m_gamePathText->setText(pathAsQString(gamePath));
 }
