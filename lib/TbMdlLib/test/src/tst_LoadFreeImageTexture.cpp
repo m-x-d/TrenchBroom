@@ -25,6 +25,8 @@
 
 #include "kd/result.h"
 
+#include "vm/approx.h"
+
 #include <filesystem>
 #include <string>
 
@@ -148,6 +150,14 @@ TEST_CASE("loadFreeImageTexture")
         }
       }
     }
+  }
+
+  SECTION("average color")
+  {
+    const auto texture = loadTexture("pngContentsTest.png") | kdl::value();
+    CHECK(
+      texture.averageColor().to<RgbaF>().toVec()
+      == vm::approx{vm::vec4f{0.631289f, 0.631289f, 0.631289f, 1.0f}});
   }
 }
 
