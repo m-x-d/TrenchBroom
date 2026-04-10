@@ -23,7 +23,7 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const packageType = 'nuget';
-            const versionsToKeep = 5;
+            const versionsToKeep = 3;
             const packageNames = new Set();
 
             async function listPackagesForType(packageType) {
