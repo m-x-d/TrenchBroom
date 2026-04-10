@@ -310,11 +310,14 @@ int main(int argc, char* argv[])
   QApplication::setOrganizationName("");
   QApplication::setOrganizationDomain("io.github.trenchbroom");
 
+  // QApplication must be created before QPreferenceStore because QPreferenceStore uses
+  // QFileSystemWatcher, which requires a QApplication instance
+  auto app = QApplication{argc, argv};
+
   // PreferenceManager is destroyed by TrenchBroomApp::~TrenchBroomApp()
   PreferenceManager::createInstance(
     std::make_unique<QPreferenceStore>(pathAsQString(SystemPaths::preferenceFilePath())));
 
-  auto app = QApplication{argc, argv};
   auto appController = createAppController();
   auto crashReporter = CrashReporter{*appController};
   setContractViolationHandler(crashReporter);
