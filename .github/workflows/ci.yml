@@ -262,5 +262,5 @@ jobs:
           deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
           external_repository: TrenchBroom/manual # Repo to deploy to
           publish_branch: gh-pages # Branch to deploy to
-          publish_dir: ./cmakebuild/app/gen-manual # Source directory tree
+          publish_dir: ./cmakebuild/app/TrenchBroom/gen-manual # Source directory tree
           destination_dir: latest # Deploy to this directory in target repo
