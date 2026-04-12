@@ -254,6 +254,9 @@ int main(int argc, char* argv[])
   // Needs to be done here before QApplication is created
   // (see: https://doc.qt.io/qt-5/qsurfaceformat.html#setDefaultFormat)
   QSurfaceFormat format;
+  format.setRenderableType(QSurfaceFormat::OpenGL);
+  format.setVersion(2, 1);
+  format.setProfile(QSurfaceFormat::CompatibilityProfile);
   format.setDepthBufferSize(24);
   format.setSamples(4);
   QSurfaceFormat::setDefaultFormat(format);
