@@ -22,7 +22,6 @@
 #include <QDateTime>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions_2_1>
-#include <QOpenGLVersionFunctionsFactory>
 #include <QPalette>
 #include <QTimer>
 #include <QWidget>
@@ -40,6 +39,7 @@
 #include "gl/VertexType.h"
 #include "render/Transformation.h"
 #include "ui/AppController.h"
+#include "ui/GlFunctions.h"
 #include "ui/GlQt.h"
 #include "ui/InputEvent.h"
 #include "ui/QColorUtils.h"
@@ -324,11 +324,7 @@ void RenderView::renderFocusIndicator(gl::Gl& gl)
 
 QOpenGLFunctions_2_1& RenderView::glFunctions()
 {
-  auto* glFunctions =
-    QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_2_1>(context());
-  contract_assert(glFunctions != nullptr);
-
-  return *glFunctions;
+  return getGlFunctions("RenderView::glFunctions", context());
 }
 
 bool RenderView::doInitializeGL()

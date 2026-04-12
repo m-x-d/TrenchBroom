@@ -26,7 +26,6 @@
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions_2_1>
-#include <QOpenGLVersionFunctionsFactory>
 #include <QTimer>
 
 #include "Logger.h"
@@ -46,6 +45,7 @@
 #include "ui/CrashDialog.h"
 #include "ui/FileDialogDefaultDir.h"
 #include "ui/GameDialog.h"
+#include "ui/GlFunctions.h"
 #include "ui/GlQt.h"
 #include "ui/MapDocument.h"
 #include "ui/MapWindow.h"
@@ -448,14 +448,10 @@ void AppController::processGlResources()
 
     contract_assert(m_offscreenSurface != nullptr);
     contract_assert(m_glContext != nullptr);
-
     m_glContext->makeCurrent(m_offscreenSurface);
+    auto& glFunctions = getGlFunctions("AppController::processGlResources", m_glContext);
 
-    auto* glFunctions =
-      QOpenGLVersionFunctionsFactory::get<QOpenGLFunctions_2_1>(m_glContext);
-    contract_assert(glFunctions != nullptr);
-
-    auto gl = GlQt{*glFunctions};
+    auto gl = GlQt{glFunctions};
     auto processContext = tb::gl::ProcessContext{gl, errorHandler};
 
     m_glManager->resourceManager().process(taskRunner, processContext, 20ms);
