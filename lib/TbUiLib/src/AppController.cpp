@@ -26,6 +26,7 @@
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions_2_1>
+#include <QSurfaceFormat>
 #include <QTimer>
 
 #include "Logger.h"
@@ -433,15 +434,21 @@ void AppController::processGlResources()
       }
     };
 
+    const auto* shareContext = QOpenGLContext::globalShareContext();
+    const auto offscreenFormat =
+      shareContext != nullptr ? shareContext->format() : QSurfaceFormat::defaultFormat();
+
     if (!m_offscreenSurface)
     {
       m_offscreenSurface = new QOffscreenSurface{nullptr, this};
+      m_offscreenSurface->setFormat(offscreenFormat);
       m_offscreenSurface->create();
     }
 
     if (!m_glContext)
     {
       m_glContext = new QOpenGLContext{this};
+      m_glContext->setFormat(offscreenFormat);
       m_glContext->setShareContext(QOpenGLContext::globalShareContext());
       m_glContext->create();
     }
