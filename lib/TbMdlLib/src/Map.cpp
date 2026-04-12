@@ -245,16 +245,24 @@ Result<std::unique_ptr<WorldNode>> createWorldNode(
 }
 
 void setWorldDefaultProperties(
-  WorldNode& world, EntityDefinitionManager& entityDefinitionManager)
+  WorldNode& worldNode,
+  EntityDefinitionManager& entityDefinitionManager,
+  Notifier<const std::vector<Node*>&>& nodesWillChangeNotifier,
+  Notifier<const std::vector<Node*>&>& nodesDidChangeNotifier)
 {
   const auto definition =
     entityDefinitionManager.definition(EntityPropertyValues::WorldspawnClassname);
 
-  if (definition && world.entityPropertyConfig().setDefaultProperties)
+  if (definition && worldNode.entityPropertyConfig().setDefaultProperties)
   {
-    auto entity = world.entity();
+    const auto nodes = std::vector<Node*>{&worldNode};
+    nodesWillChangeNotifier(nodes);
+
+    auto entity = worldNode.entity();
     setDefaultProperties(*definition, entity, SetDefaultPropertyMode::SetAll);
-    world.setEntity(std::move(entity));
+    worldNode.setEntity(std::move(entity));
+
+    nodesDidChangeNotifier(nodes);
   }
 }
 
@@ -508,7 +516,11 @@ Map::Map(
       resourceManager,
       logger}
 {
-  setWorldDefaultProperties(*m_worldNode, *m_entityDefinitionManager);
+  setWorldDefaultProperties(
+    *m_worldNode,
+    *m_entityDefinitionManager,
+    nodesWillChangeNotifier,
+    nodesDidChangeNotifier);
 }
 
 Map::Map(
