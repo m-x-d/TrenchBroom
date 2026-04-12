@@ -245,16 +245,16 @@ Result<std::unique_ptr<WorldNode>> createWorldNode(
 }
 
 void setWorldDefaultProperties(
-  WorldNode& world, EntityDefinitionManager& entityDefinitionManager)
+  WorldNode& worldNode, EntityDefinitionManager& entityDefinitionManager)
 {
   const auto definition =
     entityDefinitionManager.definition(EntityPropertyValues::WorldspawnClassname);
 
-  if (definition && world.entityPropertyConfig().setDefaultProperties)
+  if (definition && worldNode.entityPropertyConfig().setDefaultProperties)
   {
-    auto entity = world.entity();
+    auto entity = worldNode.entity();
     setDefaultProperties(*definition, entity, SetDefaultPropertyMode::SetAll);
-    world.setEntity(std::move(entity));
+    worldNode.setEntity(std::move(entity));
   }
 }
 
