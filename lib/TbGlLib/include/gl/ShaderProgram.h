@@ -73,6 +73,8 @@ public:
   void set(Gl& gl, const std::string& name, const vm::mat2x2f& value);
   void set(Gl& gl, const std::string& name, const vm::mat3x3f& value);
   void set(Gl& gl, const std::string& name, const vm::mat4x4f& value);
+  void set(Gl& gl, const std::string& name, const RgbF& value);
+  void set(Gl& gl, const std::string& name, const RgbaF& value);
 
   template <typename C>
   void set(Gl& gl, const std::string& name, const C& value)

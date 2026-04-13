@@ -174,6 +174,16 @@ void ShaderProgram::set(Gl& gl, const std::string& name, const vm::mat4x4f& valu
     findUniformLocation(gl, name), 1, false, reinterpret_cast<const float*>(value.v));
 }
 
+void ShaderProgram::set(Gl& gl, const std::string& name, const RgbF& value)
+{
+  set(gl, name, value.toVec());
+}
+
+void ShaderProgram::set(Gl& gl, const std::string& name, const RgbaF& value)
+{
+  set(gl, name, value.toVec());
+}
+
 GLint ShaderProgram::findAttributeLocation(Gl& gl, const std::string& name) const
 {
   auto it = m_attributeCache.find(name);
