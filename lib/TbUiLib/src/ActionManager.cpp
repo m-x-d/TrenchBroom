@@ -902,7 +902,9 @@ void ActionManager::createFileMenu()
     ActionContext::Any,
     QKeySequence{Qt::Key_F5},
     [](auto& context) { context.mapWindow().reloadMaterialCollections(); },
-    [](const auto& context) { return context.hasDocument(); },
+    [](const auto& context) {
+      return context.hasDocument() && context.mapWindow().canReloadMaterialCollections();
+    },
   }));
   fileMenu.addItem(addAction(Action{
     "Menu/File/Reload Entity Definitions",
@@ -910,7 +912,9 @@ void ActionManager::createFileMenu()
     ActionContext::Any,
     QKeySequence{Qt::Key_F6},
     [](auto& context) { context.mapWindow().reloadEntityDefinitions(); },
-    [](const auto& context) { return context.hasDocument(); },
+    [](const auto& context) {
+      return context.hasDocument() && context.mapWindow().canReloadEntityDefinitions();
+    },
   }));
   fileMenu.addSeparator();
   fileMenu.addItem(addAction(Action{
