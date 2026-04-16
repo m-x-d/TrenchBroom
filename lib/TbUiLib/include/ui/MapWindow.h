@@ -51,6 +51,7 @@ namespace gl
 {
 class ContextManager;
 class Material;
+class ResourceId;
 } // namespace gl
 
 namespace mdl
@@ -183,6 +184,8 @@ private: // notification handlers
   void transactionUndone(const std::string& name, bool observable, bool isModification);
 
   void preferenceDidChange(const std::filesystem::path& path);
+  void resourcesWereProcessed(const std::vector<gl::ResourceId>& resourceIds);
+
   void gridDidChange();
   void toolActivated(Tool& tool);
   void toolDeactivated(Tool& tool);
@@ -228,6 +231,9 @@ public:
 
   void reloadMaterialCollections();
   void reloadEntityDefinitions();
+  bool canReloadMaterialCollections() const;
+  bool canReloadEntityDefinitions() const;
+
   void closeDocument();
 
   void undo();

@@ -41,6 +41,8 @@
 
 #include "PreferenceManager.h"
 #include "Preferences.h"
+#include "gl/GlManager.h"
+#include "gl/ResourceManager.h"
 #include "mdl/Autosaver.h"
 #include "mdl/BrushFace.h"
 #include "mdl/BrushNode.h"
@@ -750,6 +752,10 @@ void MapWindow::connectObservers()
   m_notifierConnection +=
     prefs.preferenceDidChangeNotifier.connect(this, &MapWindow::preferenceDidChange);
 
+  auto& resourceManager = m_appController.glManager().resourceManager();
+  m_notifierConnection += resourceManager.resourcesWereProcessedNotifier.connect(
+    this, &MapWindow::resourcesWereProcessed);
+
   m_notifierConnection +=
     m_document->documentWasLoadedNotifier.connect(this, &MapWindow::documentWasLoaded);
   m_notifierConnection +=
@@ -852,6 +858,11 @@ void MapWindow::preferenceDidChange(const std::filesystem::path& path)
   }
 
   updateShortcuts();
+}
+
+void MapWindow::resourcesWereProcessed(const std::vector<gl::ResourceId>&)
+{
+  updateActionState();
 }
 
 void MapWindow::gridDidChange()
@@ -1245,6 +1256,16 @@ void MapWindow::reloadMaterialCollections()
 void MapWindow::reloadEntityDefinitions()
 {
   mdl::reloadEntityDefinitions(m_document->map());
+}
+
+bool MapWindow::canReloadMaterialCollections() const
+{
+  return !m_appController.glManager().resourceManager().needsProcessing();
+}
+
+bool MapWindow::canReloadEntityDefinitions() const
+{
+  return !m_appController.glManager().resourceManager().needsProcessing();
 }
 
 void MapWindow::closeDocument()

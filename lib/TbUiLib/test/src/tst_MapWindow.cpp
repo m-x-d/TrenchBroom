@@ -20,7 +20,12 @@
 #include <QApplication>
 #include <QComboBox>
 
+#include "Result.h"
 #include "gl/GlManager.h"
+#include "gl/Resource.h"
+#include "gl/ResourceManager.h"
+#include "gl/TestGl.h"
+#include "gl/TestUtils.h"
 #include "mdl/GameConfigFixture.h"
 #include "mdl/Grid.h"
 #include "mdl/Map.h"
@@ -35,6 +40,13 @@
 
 namespace tb::ui
 {
+
+// Simple resource type for testing resource processing
+struct TestResource
+{
+  void upload(gl::Gl&) const {}
+  void drop(gl::Gl&) const {}
+};
 
 TEST_CASE("MapWindow")
 {
@@ -83,6 +95,56 @@ TEST_CASE("MapWindow")
     CHECK(loadedGridSize != changedGridSize);
     CHECK(gridChoice->currentIndex() == loadedGridIndex);
     CHECK(gridChoice->currentData().toInt() == loadedGridSize);
+  }
+
+  SECTION("canReloadMaterialCollections returns false when resources need processing")
+  {
+    using TestResourceT = gl::Resource<TestResource>;
+
+    // Verify initial state: no resources pending processing
+    REQUIRE(!appController.glManager().resourceManager().needsProcessing());
+    CHECK(window.canReloadMaterialCollections());
+
+    // Add a resource that needs processing
+    auto testResource = std::make_shared<TestResourceT>(
+      []() { return Result<TestResource>{TestResource{}}; });
+    appController.glManager().resourceManager().addResource(testResource);
+
+    REQUIRE(appController.glManager().resourceManager().needsProcessing());
+    CHECK(!window.canReloadMaterialCollections());
+
+    // Process all resources synchronously
+    auto testGl = gl::TestGl{};
+    const auto processContext = gl::ProcessContext{testGl, [](auto, auto) {}};
+    gl::processResourcesSync(appController.glManager().resourceManager(), processContext);
+
+    REQUIRE(!appController.glManager().resourceManager().needsProcessing());
+    CHECK(window.canReloadMaterialCollections());
+  }
+
+  SECTION("canReloadEntityDefinitions returns false when resources need processing")
+  {
+    using TestResourceT = gl::Resource<TestResource>;
+
+    // Verify initial state: no resources pending processing
+    REQUIRE(!appController.glManager().resourceManager().needsProcessing());
+    CHECK(window.canReloadEntityDefinitions());
+
+    // Add a resource that needs processing
+    auto testResource = std::make_shared<TestResourceT>(
+      []() { return Result<TestResource>{TestResource{}}; });
+    appController.glManager().resourceManager().addResource(testResource);
+
+    REQUIRE(appController.glManager().resourceManager().needsProcessing());
+    CHECK(!window.canReloadEntityDefinitions());
+
+    // Process all resources synchronously
+    auto testGl = gl::TestGl{};
+    const auto processContext = gl::ProcessContext{testGl, [](auto, auto) {}};
+    gl::processResourcesSync(appController.glManager().resourceManager(), processContext);
+
+    REQUIRE(!appController.glManager().resourceManager().needsProcessing());
+    CHECK(window.canReloadEntityDefinitions());
   }
 }
 
