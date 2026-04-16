@@ -35,6 +35,7 @@ jobs:
     env:
       # Record pull request head commit SHA
       TB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       # Set up environment variables required for caching vcpkg packages using NuGet
       # See https://learn.microsoft.com/en-us/vcpkg/consume/binary-caching-github-packages?pivots=windows-runner
       USERNAME: TrenchBroom
@@ -68,6 +69,7 @@ jobs:
       - name: Windows - Install dependencies
         if: ${{ matrix.os == 'windows-2022' }}
         run: |
+          choco install ccache --yes --no-progress
           # Chocolatey was taking 3 minutes to install pandoc; just install it directly
           Invoke-WebRequest 'https://github.com/jgm/pandoc/releases/download/2.11.3.1/pandoc-2.11.3.1-windows-x86_64.zip' -OutFile 'pandoc.zip'
           if ("668A62A8990DEB2753753DF0C8D3F1BE567026FE" -ne (Get-FileHash -Path 'pandoc.zip' -Algorithm SHA1).Hash) { exit }
@@ -77,6 +79,25 @@ jobs:
           echo "Pandoc path: $tb_pandoc_path"
           # See: https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-commands-for-github-actions#environment-files
           echo "$tb_pandoc_path" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Windows - Restore ccache
+        uses: actions/cache@v4
+        if: ${{ matrix.os == 'windows-2022' }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-windows.bat', 'vcpkg.json') }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ccache-${{ matrix.os }}-
+
+      - name: Windows - Initialize ccache
+        if: ${{ matrix.os == 'windows-2022' }}
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path "$env:CCACHE_DIR" -Force | Out-Null
+          ccache --set-config=max_size=1G
+          ccache --zero-stats
 
       - name: Windows - Add NuGet sources
         if: ${{ matrix.os == 'windows-2022' }}
@@ -97,6 +118,11 @@ jobs:
         if: ${{ matrix.os == 'windows-2022' }}
         run: cmd.exe /c CI-windows.bat
 
+      - name: Windows - ccache stats
+        if: ${{ always() && matrix.os == 'windows-2022' }}
+        shell: pwsh
+        run: ccache --show-stats
+
       - name: Windows - Upload artifacts
         uses: actions/upload-artifact@v4
         if: ${{ matrix.os == 'windows-2022' }}
@@ -116,7 +142,25 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: |
           sudo apt update
-          sudo apt install gcc-13 g++-13 build-essential libxi-dev libxrandr-dev libxxf86vm-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libglm-dev pandoc cmake p7zip-full ninja-build xvfb libglew-dev libfreeimage-dev libfreetype6-dev libtinyxml2-dev libassimp-dev libfuse2 mono-complete
+          sudo apt install gcc-13 g++-13 build-essential libxi-dev libxrandr-dev libxxf86vm-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libglm-dev pandoc cmake p7zip-full ninja-build xvfb libglew-dev libfreeimage-dev libfreetype6-dev libtinyxml2-dev libassimp-dev libfuse2 mono-complete ccache
+
+      - name: Linux - Restore ccache
+        uses: actions/cache@v4
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-linux.sh', 'CI-macos.sh', 'vcpkg.json') }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ccache-${{ matrix.os }}-
+
+      - name: Linux - Initialize ccache
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: |
+          mkdir -p "$CCACHE_DIR"
+          ccache --set-config=max_size=1G
+          ccache --zero-stats
 
       - name: Linux - Add NuGet sources
         if: ${{ matrix.os == 'ubuntu-24.04' }}
@@ -143,6 +187,10 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: |
           ./CI-linux.sh
+
+      - name: macOS - ccache stats
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: ccache --show-stats
 
       - name: Linux - Upload artifacts
         uses: actions/upload-artifact@v4
@@ -193,7 +241,7 @@ jobs:
 
       - name: macOS - Install dependencies
         if: ${{ startsWith(matrix.os, 'macos') }}
-        run: brew install p7zip pandoc ninja autoconf automake mono
+        run: brew install p7zip pandoc ninja autoconf automake mono ccache
 
       - name: macOS - Import signing certificates
         if: ${{ env.TB_SIGN_MAC_BUNDLE == 'true' }}
@@ -201,6 +249,24 @@ jobs:
         with:
           p12-file-base64: ${{ secrets.ACTIONS_MAC_SIGN_CERTIFICATES_P12 }}
           p12-password: ${{ secrets.ACTIONS_MAC_SIGN_CERTIFICATES_P12_PASSWORD }}
+
+      - name: macOS - Restore ccache
+        uses: actions/cache@v4
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-linux.sh', 'CI-macos.sh', 'vcpkg.json') }}
+          restore-keys: |
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ccache-${{ matrix.os }}-
+
+      - name: macOS - Initialize ccache
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        run: |
+          mkdir -p "$CCACHE_DIR"
+          ccache --set-config=max_size=1G
+          ccache --zero-stats
 
       - name: macOS - Add NuGet sources
         if: ${{ startsWith(matrix.os, 'macos') }}
@@ -220,6 +286,10 @@ jobs:
       - name: macOS - Build
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: ./CI-macos.sh
+
+      - name: macOS - ccache stats
+        if: ${{ startsWith(matrix.os, 'macos') }}
+        run: ccache --show-stats
 
       - name: macOS - Upload artifacts
         uses: actions/upload-artifact@v4

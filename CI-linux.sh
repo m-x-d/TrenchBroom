@@ -25,7 +25,7 @@ cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_CXX_FLAGS="-Werror" \
   -DCMAKE_EXE_LINKER_FLAGS="-Wl,--fatal-warnings" \
-  -DTB_ENABLE_CCACHE=0 \
+  -DTB_ENABLE_CCACHE=1 \
   -DTB_ENABLE_PCH=0 \
   -DCMAKE_INSTALL_PREFIX=/usr \
   || exit 1
