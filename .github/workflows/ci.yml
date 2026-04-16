@@ -36,6 +36,7 @@ jobs:
       # Record pull request head commit SHA
       TB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_CACHE_KEY_PREFIX: ccache-v1
       # Set up environment variables required for caching vcpkg packages using NuGet
       # See https://learn.microsoft.com/en-us/vcpkg/consume/binary-caching-github-packages?pivots=windows-runner
       USERNAME: TrenchBroom
@@ -85,11 +86,11 @@ jobs:
         if: ${{ matrix.os == 'windows-2022' }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-windows.bat', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
           restore-keys: |
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
-            ccache-${{ matrix.os }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-
 
       - name: Windows - Initialize ccache
         if: ${{ matrix.os == 'windows-2022' }}
@@ -149,11 +150,11 @@ jobs:
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-linux.sh', 'CI-macos.sh', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
           restore-keys: |
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
-            ccache-${{ matrix.os }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-
 
       - name: Linux - Initialize ccache
         if: ${{ matrix.os == 'ubuntu-24.04' }}
@@ -255,11 +256,11 @@ jobs:
         if: ${{ startsWith(matrix.os, 'macos') }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'CI-linux.sh', 'CI-macos.sh', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
           restore-keys: |
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
-            ccache-${{ matrix.os }}-${{ matrix.tb-build-type }}-
-            ccache-${{ matrix.os }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
+            ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-
 
       - name: macOS - Initialize ccache
         if: ${{ startsWith(matrix.os, 'macos') }}
