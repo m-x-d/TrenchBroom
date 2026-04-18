@@ -69,8 +69,18 @@ jobs:
 
       - name: Windows - Install dependencies
         if: ${{ matrix.os == 'windows-2022' }}
+        shell: pwsh
         run: |
           choco install ccache --yes --no-progress
+          # Ensure Chocolatey shims are on PATH for subsequent steps.
+          if (-not $env:ChocolateyInstall) {
+            throw "ChocolateyInstall is not set"
+          }
+          "$env:ChocolateyInstall\\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+          # Fail fast if ccache still cannot be resolved.
+          Get-Command ccache -ErrorAction Stop | Out-Null
+
           # Chocolatey was taking 3 minutes to install pandoc; just install it directly
           Invoke-WebRequest 'https://github.com/jgm/pandoc/releases/download/2.11.3.1/pandoc-2.11.3.1-windows-x86_64.zip' -OutFile 'pandoc.zip'
           if ("668A62A8990DEB2753753DF0C8D3F1BE567026FE" -ne (Get-FileHash -Path 'pandoc.zip' -Algorithm SHA1).Hash) { exit }
