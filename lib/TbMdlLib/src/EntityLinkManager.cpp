@@ -267,8 +267,8 @@ void EntityLinkManager::addLinksFrom(EntityNodeBase& sourceNode)
     // sources with missing targets during validation.
     auto& linkTargetsForKey = m_linkSources[&sourceNode][sourcePropertyKey];
 
-    for (const auto* targetNode :
-         m_nodeIndex.findNodes<EntityNodeBase>(sourcePropertyValue))
+    for (const auto* targetNode : m_nodeIndex.findNodes<EntityNodeBase>(
+           NodeIndex::escapePattern(sourcePropertyValue)))
     {
       for (const auto& targetPropertyKey : getLinkTargetPropertyKeys(*targetNode))
       {
@@ -296,8 +296,8 @@ void EntityLinkManager::addLinksTo(EntityNodeBase& targetNode)
     // targets with missing sources during validation.
     auto& linkSourcesForKey = m_linkTargets[&targetNode][targetPropertyKey];
 
-    for (const auto* sourceNode :
-         m_nodeIndex.findNodes<EntityNodeBase>(targetPropertyValue))
+    for (const auto* sourceNode : m_nodeIndex.findNodes<EntityNodeBase>(
+           NodeIndex::escapePattern(targetPropertyValue)))
     {
       for (const auto& sourcePropertyKey : getLinkSourcePropertyKeys(*sourceNode))
       {

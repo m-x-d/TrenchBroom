@@ -40,6 +40,7 @@
 #include "mdl/Map.h"
 #include "mdl/Map_Entities.h"
 #include "mdl/ModelUtils.h"
+#include "mdl/NodeIndex.h"
 #include "mdl/PropertyDefinition.h"
 #include "mdl/WorldNode.h"
 #include "ui/ImageUtils.h"
@@ -419,8 +420,8 @@ std::vector<std::string> getAllValuesForPropertyKeys(
   auto result = kdl::vector_set<std::string>();
   for (const auto& key : propertyKeys)
   {
-    for (const auto* entityNode :
-         map.findNodes<mdl::EntityNodeBase>(fmt::format("{}%*", key)))
+    for (const auto* entityNode : map.findNodes<mdl::EntityNodeBase>(
+           fmt::format("{}%*", mdl::NodeIndex::escapePattern(key))))
     {
       const auto values =
         entityNode->entity().numberedProperties(key)

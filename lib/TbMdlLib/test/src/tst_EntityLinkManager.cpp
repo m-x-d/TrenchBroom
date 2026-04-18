@@ -199,6 +199,38 @@ TEST_CASE("EntityLinkManager")
     }
   }
 
+  SECTION("Link names containing backslashes and special characters")
+  {
+    const auto linkValue = R"(path\to\thing*a?%)"s;
+
+    auto sourceNode = EntityNode{Entity{{
+      {SourceProp, linkValue},
+    }}};
+    sourceNode.setDefinition(&sourceDefinition);
+
+    auto targetNode = EntityNode{Entity{{
+      {TargetProp, linkValue},
+    }}};
+    targetNode.setDefinition(&targetDefinition);
+
+    i.addNode(targetNode);
+    i.addNode(sourceNode);
+
+    m.addEntityNode(sourceNode);
+    m.addEntityNode(targetNode);
+
+    CHECK(
+      m.linksFrom(sourceNode)
+      == LinkEndsForKey{
+        {SourceProp, {{&targetNode, TargetProp}}},
+      });
+    CHECK(
+      m.linksTo(targetNode)
+      == LinkEndsForKey{
+        {TargetProp, {{&sourceNode, SourceProp}}},
+      });
+  }
+
   SECTION("No source or prop definitions")
   {
     auto n1 = EntityNode{Entity{{
