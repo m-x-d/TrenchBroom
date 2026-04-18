@@ -75,4 +75,13 @@
      d="M -4e-7,-1e-7 V 16 L 12,8.0000001 Z"
      id="path1565-5-3"
      sodipodi:nodetypes="cccc" />
+  <rect
+     style="fill:#404040;stroke-linecap:round;stroke-linejoin:bevel"
+     id="rect1"
+     width="2"
+     height="16"
+     x="11"
+     y="0"
+     ry="0"
+     rx="1" />
 </svg>
