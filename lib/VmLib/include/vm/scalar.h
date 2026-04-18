@@ -440,6 +440,18 @@ constexpr T smoothstep(const T e0, const T e1, const T v)
 template <typename T>
 constexpr T trunc(const T v)
 {
+  if (is_nan(v) || is_inf(v))
+  {
+    return v;
+  }
+
+  constexpr auto min_v = static_cast<T>(std::numeric_limits<int64_t>::lowest());
+  constexpr auto max_exclusive_v = -min_v;
+  if (v < min_v || v >= max_exclusive_v)
+  {
+    return v;
+  }
+
   return static_cast<T>(static_cast<int64_t>(v));
 }
 
