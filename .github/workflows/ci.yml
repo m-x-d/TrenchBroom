@@ -82,11 +82,12 @@ jobs:
           echo "$tb_pandoc_path" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Windows - Restore ccache
-        uses: actions/cache@v4
+        id: windows-ccache-restore
+        uses: actions/cache/restore@v4
         if: ${{ matrix.os == 'windows-2022' }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
           restore-keys: |
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
@@ -124,6 +125,13 @@ jobs:
         shell: pwsh
         run: ccache --show-stats
 
+      - name: Windows - Save ccache
+        uses: actions/cache/save@v4
+        if: ${{ success() && matrix.os == 'windows-2022' && github.ref == 'refs/heads/master' }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
+
       - name: Windows - Upload artifacts
         uses: actions/upload-artifact@v4
         if: ${{ matrix.os == 'windows-2022' }}
@@ -146,11 +154,12 @@ jobs:
           sudo apt install gcc-13 g++-13 build-essential libxi-dev libxrandr-dev libxxf86vm-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libglm-dev pandoc cmake p7zip-full ninja-build xvfb libglew-dev libfreeimage-dev libfreetype6-dev libtinyxml2-dev libassimp-dev libfuse2 mono-complete ccache
 
       - name: Linux - Restore ccache
-        uses: actions/cache@v4
+        id: linux-ccache-restore
+        uses: actions/cache/restore@v4
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
           restore-keys: |
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
@@ -192,6 +201,13 @@ jobs:
       - name: macOS - ccache stats
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: ccache --show-stats
+
+      - name: Linux - Save ccache
+        uses: actions/cache/save@v4
+        if: ${{ success() && matrix.os == 'ubuntu-24.04' && github.ref == 'refs/heads/master' }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
 
       - name: Linux - Upload artifacts
         uses: actions/upload-artifact@v4
@@ -252,11 +268,12 @@ jobs:
           p12-password: ${{ secrets.ACTIONS_MAC_SIGN_CERTIFICATES_P12_PASSWORD }}
 
       - name: macOS - Restore ccache
-        uses: actions/cache@v4
+        id: macos-ccache-restore
+        uses: actions/cache/restore@v4
         if: ${{ startsWith(matrix.os, 'macos') }}
         with:
           path: ${{ env.CCACHE_DIR }}
-          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ hashFiles('CMakeLists.txt', 'vcpkg.json') }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
           restore-keys: |
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
@@ -291,6 +308,13 @@ jobs:
       - name: macOS - ccache stats
         if: ${{ startsWith(matrix.os, 'macos') }}
         run: ccache --show-stats
+
+      - name: macOS - Save ccache
+        uses: actions/cache/save@v4
+        if: ${{ success() && startsWith(matrix.os, 'macos') && github.ref == 'refs/heads/master' }}
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-${{ matrix.tb-arch }}-${{ github.run_id }}
 
       - name: macOS - Upload artifacts
         uses: actions/upload-artifact@v4
