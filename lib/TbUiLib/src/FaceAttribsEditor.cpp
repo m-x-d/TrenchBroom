@@ -383,41 +383,57 @@ QWidget* FaceAttribsEditor::createButtonsWidget()
 {
   m_alignButton = createBitmapButton(
     "AlignTexture.svg",
-    tr("Align texture to face edges. Click again to cycle through edges. Hold shift to "
-       "cycle backwards."),
+    tr(R"(Align texture to face edges.
+Click again to cycle through edges.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_justifyUpButton = createBitmapButton(
     "JustifyTextureUp.svg",
-    tr("Justify texture upwards. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(R"(Justify texture to top edge.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_justifyDownButton = createBitmapButton(
     "JustifyTextureDown.svg",
-    tr("Justify texture downwards. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(R"(Justify texture to bottom edge.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_justifyLeftButton = createBitmapButton(
     "JustifyTextureLeft.svg",
-    tr("Justify texture leftwards. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(R"(Justify texture to left edge.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_justifyRightButton = createBitmapButton(
     "JustifyTextureRight.svg",
-    tr("Justify texture rightwards. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(
+      R"(Justify texture to right edge.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_fitHButton = createBitmapButton(
     "FitTextureHorizontally.svg",
-    tr("Fit texture horizontally. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(
+      R"(Fit texture horizontally.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_fitVButton = createBitmapButton(
     "FitTextureVertically.svg",
-    tr("Fit texture vertically. Click again to cycle through options. Hold shift to "
-       "cycle backwards."),
+    tr(R"(Fit texture vertically.
+Click again to cycle through options.
+Hold %1 to cycle backwards.)")
+      .arg(nativeModifierLabel(Qt::SHIFT)),
     this);
   m_autoFitButton =
-    createBitmapButton("AutoFitTexture.svg", tr("Auto fit texture."), this);
+    createBitmapButton("AutoFitTexture.svg", tr("Fit texture to face."), this);
 
   auto* innerLayout = new QGridLayout{};
   innerLayout->addWidget(m_justifyUpButton, 0, 1);
