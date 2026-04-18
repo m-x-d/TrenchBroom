@@ -41,7 +41,7 @@
      inkscape:current-layer="svg84"
      inkscape:window-maximized="0"
      inkscape:window-y="30"
-     inkscape:window-x="60"
+     inkscape:window-x="79"
      inkscape:cy="7.8386822"
      inkscape:cx="8.804317"
      inkscape:zoom="35.21"
@@ -75,4 +75,13 @@
      d="M -9.9999999e-8,16 H 16 L 8.0000002,3.9999996 Z"
      id="path1565-5-3"
      sodipodi:nodetypes="cccc" />
+  <rect
+     style="fill:#404040;stroke:none;stroke-linecap:round;stroke-linejoin:bevel"
+     id="rect1"
+     width="16"
+     height="2"
+     x="0"
+     y="3"
+     rx="0"
+     ry="1.9975249" />
 </svg>
