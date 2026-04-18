@@ -46,6 +46,19 @@ TEST_CASE("compact_trie")
 {
   test_index index;
 
+  SECTION("escape")
+  {
+    CHECK(test_index::escape("") == "");
+    CHECK(test_index::escape("plain text") == "plain text");
+    CHECK(test_index::escape("literal*?%\\") == "literal\\*\\?\\%\\\\");
+
+    index.insert("literal*?%\\", "value");
+    index.insert("literal1234", "other");
+
+    CHECK_THAT(
+      find(index, test_index::escape("literal*?%\\")), UnorderedRangeEquals({"value"}));
+  }
+
   SECTION("insert")
   {
     index.insert("key", "value");
