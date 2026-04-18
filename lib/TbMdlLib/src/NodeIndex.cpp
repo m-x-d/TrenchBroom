@@ -81,6 +81,11 @@ NodeIndex::NodeIndex()
 
 NodeIndex::~NodeIndex() = default;
 
+std::string NodeIndex::escapePattern(std::string_view str)
+{
+  return NodeStringIndex::escape(str);
+}
+
 void NodeIndex::addNode(Node& node)
 {
   const auto addToIndex = [&](const std::string_view key) {
