@@ -185,10 +185,10 @@ int main(int argc, char* argv[])
   QApplication::setOrganizationName("");
   QApplication::setOrganizationDomain("io.github.trenchbroom");
 
+  auto app = QApplication{argc, argv};
+
   PreferenceManager::createInstance(
     std::make_unique<QPreferenceStore>(pathAsQString(SystemPaths::preferenceFilePath())));
-
-  auto app = QApplication{argc, argv};
 
   auto parser = QCommandLineParser{};
   parser.setApplicationDescription("Dump TrenchBroom keyboard shortcuts as JavaScript.");
