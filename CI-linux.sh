@@ -3,7 +3,6 @@
 # set -o verbose
 
 # Check versions
-qmake -v
 cmake --version
 ninja --version
 pandoc --version
@@ -13,6 +12,10 @@ pandoc --version
 rm -rf cmakebuild
 mkdir cmakebuild
 cd cmakebuild
+
+# AppImage tools (linuxdeploy and plugins) may need extract-and-run mode in
+# containers where FUSE mounts are unavailable.
+export APPIMAGE_EXTRACT_AND_RUN=1
 
 # install linuxdeploy into the build dir so it gets cleared with it
 wget -nc https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage

@@ -35,6 +35,7 @@ jobs:
     env:
       # Record pull request head commit SHA
       TB_PULL_REQUEST_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      TB_LINUX_CONTAINER_IMAGE: tb-linux-ci:ubuntu20-gcc13
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_CACHE_KEY_PREFIX: ccache-v1
       # Set up environment variables required for caching vcpkg packages using NuGet
@@ -146,17 +147,6 @@ jobs:
             cmakebuild/*.zip.md5
 
       # Linux
-      - name: Linux - Bootstrap vcpkg
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
-        shell: bash
-        run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
-
-      - name: Linux - Install dependencies
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
-        run: |
-          sudo apt update
-          sudo apt install gcc-13 g++-13 build-essential libxi-dev libxrandr-dev libxxf86vm-dev freeglut3-dev mesa-common-dev libgl1-mesa-dev libglu1-mesa-dev libglm-dev pandoc cmake p7zip-full ninja-build libglew-dev libfreeimage-dev libfreetype6-dev libtinyxml2-dev libassimp-dev libfuse2 mono-complete ccache
-
       - name: Linux - Restore ccache
         id: linux-ccache-restore
         uses: actions/cache/restore@v4
@@ -169,42 +159,60 @@ jobs:
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-${{ matrix.tb-build-type }}-
             ${{ env.CCACHE_CACHE_KEY_PREFIX }}-${{ matrix.os }}-
 
+      - name: Linux - Build container image
+        if: ${{ matrix.os == 'ubuntu-24.04' }}
+        run: |
+          docker build -f docker/Dockerfile.build-linux -t "${{ env.TB_LINUX_CONTAINER_IMAGE }}" .
+
       - name: Linux - Initialize ccache
         if: ${{ matrix.os == 'ubuntu-24.04' }}
         run: |
-          mkdir -p "$CCACHE_DIR"
-          ccache --set-config=max_size=1G
-          ccache --zero-stats
+          docker run --rm \
+            --user runner \
+            -e CCACHE_DIR="${{ github.workspace }}/.ccache" \
+            -v "${{ github.workspace }}:${{ github.workspace }}" \
+            -w "${{ github.workspace }}" \
+            "${{ env.TB_LINUX_CONTAINER_IMAGE }}" \
+            bash -lc 'mkdir -p "${CCACHE_DIR}" && ccache --set-config=max_size=1G && ccache --zero-stats'
 
-      - name: Linux - Add NuGet sources
+      - name: Linux - Build in container
         if: ${{ matrix.os == 'ubuntu-24.04' }}
-        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            sources add \
-            -Source "${{ env.FEED_URL }}" \
-            -StorePasswordInClearText \
-            -Name GitHubPackages \
-            -UserName "${{ env.USERNAME }}" \
-            -Password "${{ secrets.GITHUB_TOKEN }}"
-          mono `${{ env.VCPKG_EXE }} fetch nuget | tail -n 1` \
-            setapikey "${{ secrets.GITHUB_TOKEN }}" \
-            -Source "${{ env.FEED_URL }}"
-
-      - name: Linux - Set compiler version
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
-        run: |
-          echo "CC=gcc-13" >> $GITHUB_ENV
-          echo "CXX=g++-13" >> $GITHUB_ENV
-
-      - name: Linux - Build
-        if: ${{ matrix.os == 'ubuntu-24.04' }}
-        run: |
-          ./CI-linux.sh
+          docker run --rm \
+            --user runner \
+            -e QT_ROOT_DIR="${QT_ROOT_DIR}" \
+            -e FEED_URL="${FEED_URL}" \
+            -e USERNAME="${USERNAME}" \
+            -e VCPKG_BINARY_SOURCES="${VCPKG_BINARY_SOURCES}" \
+            -e GITHUB_TOKEN="${GH_TOKEN}" \
+            -e CCACHE_DIR="${{ github.workspace }}/.ccache" \
+            -e CC=gcc-13 \
+            -e CXX=g++-13 \
+            -v "${{ github.workspace }}:${{ github.workspace }}" \
+            -v "${QT_ROOT_DIR}:${QT_ROOT_DIR}:ro" \
+            -w "${{ github.workspace }}" \
+            "${{ env.TB_LINUX_CONTAINER_IMAGE }}" \
+            bash -lc '
+              set -euo pipefail
+              git config --global --add safe.directory "${{ github.workspace }}"
+              ./vcpkg/bootstrap-vcpkg.sh
+              mono `./vcpkg/vcpkg fetch nuget | tail -n 1` sources add -Source "${FEED_URL}" -StorePasswordInClearText -Name GitHubPackages -UserName "${USERNAME}" -Password "${GITHUB_TOKEN}"
+              mono `./vcpkg/vcpkg fetch nuget | tail -n 1` setapikey "${GITHUB_TOKEN}" -Source "${FEED_URL}"
+              ./CI-linux.sh
+            '
 
       - name: Linux - ccache stats
         if: ${{ matrix.os == 'ubuntu-24.04' }}
-        run: ccache --show-stats
+        run: |
+          docker run --rm \
+            --user runner \
+            -e CCACHE_DIR="${{ github.workspace }}/.ccache" \
+            -v "${{ github.workspace }}:${{ github.workspace }}" \
+            -w "${{ github.workspace }}" \
+            "${{ env.TB_LINUX_CONTAINER_IMAGE }}" \
+            ccache --show-stats
 
       - name: Linux - Save ccache
         uses: actions/cache/save@v4
