@@ -429,7 +429,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
     # configure AppImage via an external CPack generator
     set(CPACK_PACKAGE_FILE_EXT "zip")
-    set(TB_LINUXDEPLOY_PATH "../linuxdeploy-x86_64.AppImage")
+    set(TB_LINUXDEPLOY_PATH "${CMAKE_BINARY_DIR}/linuxdeploy-x86_64.AppImage")
     get_target_property(TB_QMAKE_PATH Qt6::qmake IMPORTED_LOCATION)
     configure_file("${CMAKE_CURRENT_SOURCE_DIR}/cmake/AppImageGenerator.cmake.in" "${CMAKE_BINARY_DIR}/AppImageGenerator.cmake" @ONLY)
 
