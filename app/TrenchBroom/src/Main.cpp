@@ -27,6 +27,7 @@
 #include <QProxyStyle>
 #include <QSettings>
 #include <QString>
+#include <QStyleHints>
 #include <QSurfaceFormat>
 #include <QtGlobal>
 
@@ -157,6 +158,7 @@ void loadStyle(QApplication& app)
   {
     app.setStyle(new TrenchBroomProxyStyle{"Fusion"});
     app.setPalette(darkPalette());
+    app.styleHints()->setColorScheme(Qt::ColorScheme::Dark);
   }
   else
   {
