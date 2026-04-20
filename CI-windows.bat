@@ -5,6 +5,8 @@ ninja --version
 pandoc --version
 IF %ERRORLEVEL% NEQ 0 GOTO ERROR
 
+
+IF EXIST cmakebuild rmdir /s /q cmakebuild
 mkdir cmakebuild
 cd cmakebuild
 

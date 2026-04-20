@@ -41,7 +41,7 @@ echo "TB_SIGN_MAC_BUNDLE: $TB_SIGN_MAC_BUNDLE"
 # more details on how to set up the necessary prerequisites for signing and notarizing the
 # app and the archive.
 
-
+rm -rf cmakebuild
 mkdir cmakebuild
 cd cmakebuild
 cmake .. \

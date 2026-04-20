@@ -18,6 +18,7 @@ pandoc --version
 
 # Build TB
 
+rm -rf cmakebuild
 mkdir cmakebuild
 cd cmakebuild
 cmake .. \
