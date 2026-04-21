@@ -1,4 +1,4 @@
-li#!/bin/bash
+#!/bin/bash
 
 # set -o verbose
 
