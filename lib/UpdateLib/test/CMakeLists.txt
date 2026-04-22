@@ -19,6 +19,7 @@ target_link_libraries(UpdateLibTest
     CompilerConfig
     UpdateLib
     Catch2::Catch2WithMain
+    Qt6::Network
     Qt6::Test
 )
 
