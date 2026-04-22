@@ -86,6 +86,7 @@ target_sources(TbUiLib
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileDialogDefaultDir.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileEventFilter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FileLogger.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/FixedWidthFont.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FlagsEditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FlagsPopupEditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/FlashSelectionAnimation.cpp
@@ -219,7 +220,6 @@ target_sources(TbUiLib
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VariableStoreModel.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VertexTool.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/VertexToolController.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/ViewConstants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ViewEditor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ViewPreferencePane.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ViewUtils.cpp
@@ -314,6 +314,7 @@ target_sources(TbUiLib
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FileDialogDefaultDir.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FileEventFilter.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FileLogger.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FixedWidthFont.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FlagsEditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FlagsPopupEditor.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ui/FlashSelectionAnimation.h

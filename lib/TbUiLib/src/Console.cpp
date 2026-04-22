@@ -30,6 +30,7 @@
 
 #include "Macros.h"
 #include "ui/FileLogger.h"
+#include "ui/FixedWidthFont.h"
 #include "ui/QThreadUtils.h"
 #include "ui/ViewConstants.h"
 
