@@ -30,6 +30,7 @@
 #include "gl/MaterialIndexRangeRenderer.h"
 #include "gl/MaterialRenderFunc.h"
 #include "gl/PrimType.h"
+#include "gl/ResourceId.h"
 #include "gl/Shaders.h"
 #include "gl/TextureFont.h"
 #include "gl/VertexArray.h"

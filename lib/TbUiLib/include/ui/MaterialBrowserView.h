@@ -21,7 +21,6 @@
 
 #include "NotifierConnection.h"
 #include "gl/FontDescriptor.h"
-#include "gl/ResourceId.h"
 #include "ui/CellView.h"
 
 #include <string>
@@ -35,6 +34,7 @@ namespace gl
 {
 class Material;
 class MaterialCollection;
+class ResourceId;
 } // namespace gl
 
 namespace ui

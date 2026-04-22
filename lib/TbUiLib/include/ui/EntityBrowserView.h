@@ -22,7 +22,6 @@
 #include "NotifierConnection.h"
 #include "el/Expression.h"
 #include "gl/FontDescriptor.h"
-#include "gl/ResourceId.h"
 #include "gl/VertexType.h"
 #include "ui/CellView.h"
 
@@ -40,7 +39,8 @@ class Logger;
 namespace gl
 {
 class MaterialRenderer;
-}
+class ResourceId;
+} // namespace gl
 
 namespace mdl
 {

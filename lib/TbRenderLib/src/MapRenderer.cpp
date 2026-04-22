@@ -22,6 +22,7 @@
 #include "PreferenceManager.h"
 #include "Preferences.h"
 #include "gl/MaterialManager.h"
+#include "gl/ResourceId.h"
 #include "gl/ResourceManager.h"
 #include "mdl/Brush.h"
 #include "mdl/BrushFace.h"

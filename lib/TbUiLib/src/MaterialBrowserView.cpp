@@ -32,6 +32,7 @@
 #include "gl/MaterialCollection.h"
 #include "gl/MaterialManager.h"
 #include "gl/PrimType.h"
+#include "gl/ResourceId.h"
 #include "gl/Shaders.h"
 #include "gl/Texture.h"
 #include "gl/TextureFont.h"
