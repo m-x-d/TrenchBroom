@@ -323,12 +323,14 @@ int main(int argc, char* argv[])
   PreferenceManager::createInstance(
     std::make_unique<QPreferenceStore>(pathAsQString(SystemPaths::preferenceFilePath())));
 
+  // Style sheets must be loaded before creating the app controller, or they won't apply
+  // to the welcome window, which the app controller creates
+  loadStyleSheets();
+  loadStyle(app);
+
   auto appController = createAppController();
   auto crashReporter = CrashReporter{*appController};
   setContractViolationHandler(crashReporter);
-
-  loadStyleSheets();
-  loadStyle(app);
 
 #ifdef __APPLE__
   app.setQuitOnLastWindowClosed(false);
