@@ -270,7 +270,7 @@ Result<FmModel> loadModel(
     }
     else if (blockHeader.ident == FmLayout::MeshNodesName)
     {
-      if (blockHeader.version == FmLayout::MeshNodesVersion)
+      if (blockHeader.version != FmLayout::MeshNodesVersion)
       {
         return Error{
           fmt::format("Unexpected mesh nodes version {}", blockHeader.version)};
