@@ -176,7 +176,7 @@ std::vector<gl::Material> loadSkins(
   return std::views::iota(0u, uint32_t(numSkins))
          | std::views::transform([&](const auto) {
              const auto pathStr = reader.readString(FmLayout::SkinNameLength);
-             const auto path = std::filesystem::path{pathStr}.make_preferred();
+             const auto path = kdl::parse_path(pathStr);
              return loadSkin(path, fs, logger);
            })
          | kdl::ranges::to<std::vector>();
