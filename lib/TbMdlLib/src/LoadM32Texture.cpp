@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2026 MaxED -- Heretic II .m32 texture loader.
+ Copyright (C) 2026 MaxED
 
  This file is part of TrenchBroom.
 
@@ -23,7 +23,13 @@
 #include "fs/ReaderException.h"
 #include "gl/Texture.h"
 
+#include "kd/ranges/to.h"
+
+#include <ranges>
+
 namespace tb::mdl
+{
+namespace
 {
 namespace M32Layout
 {
@@ -34,6 +40,15 @@ constexpr size_t AnimNameLength = 128;
 constexpr size_t DamageNameLength = 128;
 constexpr size_t MipLevels = 16;
 } // namespace M32Layout
+
+std::vector<size_t> readSizeVec(const size_t count, fs::Reader& reader)
+{
+  return std::views::iota(0u, count)
+         | std::views::transform([&](const auto) { return reader.readSize<uint32_t>(); })
+         | kdl::ranges::to<std::vector>();
+}
+
+} // namespace
 
 Result<gl::Texture> loadM32Texture(fs::Reader& reader)
 {
@@ -49,26 +64,9 @@ Result<gl::Texture> loadM32Texture(fs::Reader& reader)
       M32Layout::TextureNameLength + M32Layout::TextureAltNameLength
       + M32Layout::AnimNameLength + M32Layout::DamageNameLength);
 
-    auto widths = std::vector<size_t>{};
-    auto heights = std::vector<size_t>{};
-    auto offsets = std::vector<size_t>{}; // Offsets from the beginning of the file.
-
-    widths.reserve(M32Layout::MipLevels);
-    heights.reserve(M32Layout::MipLevels);
-    offsets.reserve(M32Layout::MipLevels);
-
-    for (size_t i = 0; i < M32Layout::MipLevels; i++)
-    {
-      widths.push_back(reader.readSize<uint32_t>());
-    }
-    for (size_t i = 0; i < M32Layout::MipLevels; i++)
-    {
-      heights.push_back(reader.readSize<uint32_t>());
-    }
-    for (size_t i = 0; i < M32Layout::MipLevels; i++)
-    {
-      offsets.push_back(reader.readSize<uint32_t>());
-    }
+    const auto widths = readSizeVec(M32Layout::MipLevels, reader);
+    const auto heights = readSizeVec(M32Layout::MipLevels, reader);
+    const auto offsets = readSizeVec(M32Layout::MipLevels, reader);
 
     auto mip0AverageColor = Color{RgbaF{}};
     auto buffers = gl::TextureBufferList{};
