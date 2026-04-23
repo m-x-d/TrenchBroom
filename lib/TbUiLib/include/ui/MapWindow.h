@@ -35,7 +35,6 @@
 
 class QAction;
 class QComboBox;
-class QDialog;
 class QDropEvent;
 class QMenuBar;
 class QLabel;

@@ -24,7 +24,6 @@
 #include "NotifierConnection.h"
 
 class QSpinBox;
-class QWidget;
 class QAbstractButton;
 
 namespace tb::ui

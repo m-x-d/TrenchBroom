@@ -21,7 +21,6 @@
 
 #include "Notifier.h"
 #include "NotifierConnection.h"
-#include "gl/ResourceId.h"
 #include "mdl/PointTrace.h"
 #include "ui/Action.h"
 
@@ -46,8 +45,9 @@ class LoggingHub;
 
 namespace gl
 {
+class ResourceId;
 class ResourceManager;
-}
+} // namespace gl
 
 namespace mdl
 {

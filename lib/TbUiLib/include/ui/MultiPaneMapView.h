@@ -25,7 +25,6 @@
 #include <vector>
 
 class QWidget;
-class QWidget;
 
 namespace tb::ui
 {

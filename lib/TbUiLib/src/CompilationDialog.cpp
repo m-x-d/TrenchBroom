@@ -38,6 +38,7 @@
 #include "ui/CompilationProfileManager.h"
 #include "ui/CompilationRunner.h"
 #include "ui/DialogButtonLayout.h"
+#include "ui/FixedWidthFont.h"
 #include "ui/LaunchGameEngineDialog.h"
 #include "ui/MapDocument.h" // IWYU pragma: keep
 #include "ui/MapWindow.h"

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2025 Kristian Duske
+ Copyright (C) 2026 Kristian Duske
 
  This file is part of TrenchBroom.
 
@@ -19,19 +19,11 @@
 
 #pragma once
 
-class QString;
+#include <QFont>
 
-namespace upd
+namespace tb::ui::Fonts
 {
 
-bool installUpdate(
-  const QString& scriptFolderPath,
-  const QString& targetPath,
-  const QString& sourcePath,
-  const QString& relativeAppPath,
-  const QString& tempFolderPath,
-  const QString& logFilePath,
-  bool requiresAdminPrivileges,
-  bool restartApp);
+QFont fixedWidthFont();
 
-} // namespace upd
+} // namespace tb::ui::Fonts
