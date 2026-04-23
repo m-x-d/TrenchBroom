@@ -38,6 +38,7 @@ class FileSystem;
 namespace mdl
 {
 bool canLoadFmModel(const std::filesystem::path& path, fs::Reader reader);
+
 Result<EntityModelData> loadFmModel(
   std::string name, fs::Reader reader, const fs::FileSystem& fs, Logger& logger);
 

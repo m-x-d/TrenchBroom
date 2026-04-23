@@ -1,5 +1,6 @@
 /*
- Copyright (C) 2026 MaxED -- Heretic II FlexModel (.fm) loader.
+ Copyright (C) 2026 MaxED
+ Copyright (C) 2026 Kristian Duske
 
  This file is part of TrenchBroom.
 
@@ -19,13 +20,16 @@
 
 #include "mdl/LoadFmModel.h"
 
+#include "Logger.h"
 #include "fs/ReaderException.h"
 #include "gl/IndexRangeMapBuilder.h"
 #include "mdl/LoadSkin.h"
 
 #include "kd/path_utils.h"
+#include "kd/ranges/to.h"
 
-#include <Logger.h>
+#include <optional>
+#include <ranges>
 #include <utility>
 
 namespace tb::mdl
@@ -125,172 +129,190 @@ struct FmAliasFrame
 struct FmModel
 {
   FmHeader header;
+  std::vector<gl::Material> skins;
   std::vector<FmAliasFrame> frames;
   std::vector<FmMeshNode> mesh_nodes;
   std::vector<int> glcmds;
 };
 
-} // namespace
-
-bool canLoadFmModel(const std::filesystem::path& path, fs::Reader reader)
+Result<FmHeader> loadModelHeader(fs::Reader& reader)
 {
-  if (!kdl::path_has_extension(kdl::path_to_lower(path), ".fm"))
+  const auto header = reader.read<FmHeader, FmHeader>();
+
+  // Sanity checks.
+  if (
+    header.skinwidth < 1 || header.skinwidth > FmLayout::MaxSkinWidth
+    || header.skinheight < 1 || header.skinheight > FmLayout::MaxSkinHeight)
   {
-    return false;
+    return Error{fmt::format(
+      "FM model has invalid skin size: {}x{}", header.skinwidth, header.skinheight)};
   }
 
-  const auto ident = reader.readString(FmLayout::HeaderNameLength);
-  const auto version = reader.readInt<int32_t>();
+  if (header.num_xyz < 1 || header.num_xyz > FmLayout::MaxVerts)
+  {
+    return Error{
+      fmt::format("FM model has invalid number of vertices: {}", header.num_xyz)};
+  }
 
-  return ident == FmLayout::HeaderName && version == FmLayout::HeaderVersion;
+  if (header.num_tris < 1 || header.num_tris > FmLayout::MaxTriangles)
+  {
+    return Error{
+      fmt::format("FM model has invalid number of triangles: {}", header.num_tris)};
+  }
+
+  if (header.num_frames < 1 || header.num_frames > FmLayout::MaxFrames)
+  {
+    return Error{
+      fmt::format("FM model has invalid number of frames: {}", header.num_frames)};
+  }
+
+  return header;
 }
 
-static bool loadSkins(
-  const FmModel& fmdl,
-  fs::Reader reader,
-  const uint32_t version,
-  EntityModelSurface& surface,
-  const fs::FileSystem& fs,
-  Logger& logger)
+std::vector<gl::Material> loadSkins(
+  const size_t numSkins, fs::Reader reader, const fs::FileSystem& fs, Logger& logger)
 {
-  if (version != FmLayout::SkinVersion)
-  {
-    return false;
-  }
-
-  auto skins = std::vector<std::string>{};
-  skins.reserve(fmdl.header.num_skins);
-
-  for (uint32_t i = 0; i < fmdl.header.num_skins; i++)
-  {
-    skins.push_back(reader.readString(FmLayout::SkinNameLength));
-  }
-
-  auto materials = std::vector<gl::Material>{};
-  materials.reserve(skins.size());
-
-  for (const auto& skin : skins)
-  {
-    const auto path = std::filesystem::path{skin}.make_preferred();
-    materials.push_back(loadSkin(path, fs, logger));
-  }
-
-  surface.setSkins(std::move(materials));
-
-  return true;
+  // AppleClang doesn't compile this without the cast to uint32_t, but I don't know why.
+  return std::views::iota(0u, uint32_t(numSkins))
+         | std::views::transform([&](const auto) {
+             const auto pathStr = reader.readString(FmLayout::SkinNameLength);
+             const auto path = std::filesystem::path{pathStr}.make_preferred();
+             return loadSkin(path, fs, logger);
+           })
+         | kdl::ranges::to<std::vector>();
 }
 
-static bool loadFrames(FmModel& fmdl, fs::Reader reader, const uint32_t version)
+std::vector<FmTriVertex> loadVertices(const size_t numVertices, fs::Reader& reader)
 {
-  if (version != FmLayout::FrameVersion)
-  {
-    return false;
-  }
-
-  for (uint32_t i = 0; i < fmdl.header.num_frames; i++)
-  {
-    FmAliasFrame frame;
-
-    frame.scale = reader.readVec<float, 3>();
-    frame.translate = reader.readVec<float, 3>();
-    frame.name = reader.readString(FmLayout::FrameNameLength);
-    frame.vertices.reserve(fmdl.header.num_xyz);
-
-    for (uint32_t c = 0; c < fmdl.header.num_xyz; c++)
-    {
-      frame.vertices.push_back(reader.read<FmTriVertex, FmTriVertex>());
-    }
-
-    fmdl.frames.push_back(frame);
-  }
-
-  return true;
+  return std::views::iota(0u, numVertices) | std::views::transform([&](const auto) {
+           return reader.read<FmTriVertex, FmTriVertex>();
+         })
+         | kdl::ranges::to<std::vector>();
 }
 
-static bool loadGlCmds(FmModel& fmdl, fs::Reader reader, const uint32_t version)
+std::vector<FmAliasFrame> loadFrames(
+  const size_t numFrames, const size_t numVertices, fs::Reader reader)
 {
-  if (version != FmLayout::GlCmdsVersion)
-  {
-    return false;
-  }
-
-  for (uint32_t i = 0; i < fmdl.header.num_glcmds; i++)
-  {
-    fmdl.glcmds.push_back(reader.readInt<int32_t>());
-  }
-
-  return true;
+  return std::views::iota(0u, numFrames) | std::views::transform([&](const auto) {
+           return FmAliasFrame{
+             .scale = reader.readVec<float, 3>(),
+             .translate = reader.readVec<float, 3>(),
+             .name = reader.readString(FmLayout::FrameNameLength),
+             .vertices = loadVertices(numVertices, reader),
+           };
+         })
+         | kdl::ranges::to<std::vector>();
 }
 
-static bool loadMeshNodes(FmModel& fmdl, fs::Reader reader, const uint32_t version)
+std::vector<int32_t> loadGlCmds(const size_t numCommands, fs::Reader reader)
 {
-  if (version != FmLayout::MeshNodesVersion)
-  {
-    return false;
-  }
-
-  for (uint32_t i = 0; i < fmdl.header.num_mesh_nodes; i++)
-  {
-    reader.seekForward(512); // Skip byte tris[256] and byte verts[256].
-
-    FmMeshNode node;
-    node.start_glcmds = static_cast<short>(reader.readInt<int16_t>());
-    node.num_glcmds = static_cast<short>(reader.readInt<int16_t>());
-
-    fmdl.mesh_nodes.push_back(node);
-  }
-
-  return true;
+  return std::views::iota(0u, numCommands)
+         | std::views::transform([&](const auto) { return reader.readInt<int32_t>(); })
+         | kdl::ranges::to<std::vector>();
 }
 
-static bool loadModel(
-  FmModel& fmdl,
-  EntityModelSurface& surface,
+std::vector<FmMeshNode> loadMeshNodes(const size_t numMeshNodes, fs::Reader reader)
+{
+  return std::views::iota(0u, numMeshNodes) | std::views::transform([&](const auto) {
+           reader.seekForward(512); // Skip byte tris[256] and byte verts[256].
+
+           return FmMeshNode{
+             .start_glcmds = static_cast<short>(reader.readInt<int16_t>()),
+             .num_glcmds = static_cast<short>(reader.readInt<int16_t>()),
+           };
+         })
+         | kdl::ranges::to<std::vector>();
+}
+
+Result<FmModel> loadModel(
+  const FmHeader& modelHeader,
   fs::Reader reader,
   const fs::FileSystem& fs,
   Logger& logger)
 {
+  auto skins = std::optional<std::vector<gl::Material>>{};
+  auto frames = std::optional<std::vector<FmAliasFrame>>{};
+  auto meshNodes = std::optional<std::vector<FmMeshNode>>{};
+  auto glCmds = std::optional<std::vector<int>>{};
+
   while (!reader.eof())
   {
-    const auto header = reader.read<FmBlockHeader, FmBlockHeader>();
-    const size_t start_pos = reader.position();
-    bool block_loaded;
+    const auto blockHeader = reader.read<FmBlockHeader, FmBlockHeader>();
+    const auto startPos = reader.position();
 
-    if (header.ident == FmLayout::SkinName)
+    if (blockHeader.ident == FmLayout::SkinName)
     {
-      block_loaded = loadSkins(fmdl, reader, header.version, surface, fs, logger);
-    }
-    else if (header.ident == FmLayout::FrameName)
-    {
-      block_loaded = loadFrames(fmdl, reader, header.version);
-    }
-    else if (header.ident == FmLayout::GlCmdsName)
-    {
-      block_loaded = loadGlCmds(fmdl, reader, header.version);
-    }
-    else if (header.ident == FmLayout::MeshNodesName)
-    {
-      block_loaded = loadMeshNodes(fmdl, reader, header.version);
-    }
-    else
-    {
-      block_loaded = FmLayout::IgnoredBlocks.contains(header.ident);
-    }
+      if (blockHeader.version != FmLayout::SkinVersion)
+      {
+        return Error{fmt::format("Unexpected skin version {}", blockHeader.version)};
+      }
 
-    if (!block_loaded)
+      skins = loadSkins(modelHeader.num_skins, reader, fs, logger);
+    }
+    else if (blockHeader.ident == FmLayout::FrameName)
     {
-      logger.debug() << fmt::format("Failed to load '{}' FM model block", header.ident);
-      return false;
+      if (blockHeader.version != FmLayout::FrameVersion)
+      {
+        return Error{fmt::format("Unexpected frame version {}", blockHeader.version)};
+      }
+
+      frames = loadFrames(modelHeader.num_frames, modelHeader.num_xyz, reader);
+    }
+    else if (blockHeader.ident == FmLayout::GlCmdsName)
+    {
+      if (blockHeader.version != FmLayout::GlCmdsVersion)
+      {
+        return Error{
+          fmt::format("Unexpected GL commands version {}", blockHeader.version)};
+      }
+
+      glCmds = loadGlCmds(modelHeader.num_glcmds, reader);
+    }
+    else if (blockHeader.ident == FmLayout::MeshNodesName)
+    {
+      if (blockHeader.version == FmLayout::MeshNodesVersion)
+      {
+        return Error{
+          fmt::format("Unexpected mesh nodes version {}", blockHeader.version)};
+      }
+      meshNodes = loadMeshNodes(modelHeader.num_mesh_nodes, reader);
+    }
+    else if (!FmLayout::IgnoredBlocks.contains(blockHeader.ident))
+    {
+      return Error{fmt::format("Unexpected block {}", blockHeader.ident)};
     }
 
     // Go to next block.
-    reader.seekFromBegin(start_pos + header.size);
+    reader.seekFromBegin(startPos + blockHeader.size);
   }
 
-  return true;
+  if (!skins)
+  {
+    return Error{"Missing skins block"};
+  }
+  if (!frames)
+  {
+    return Error{"Missing frames block"};
+  }
+  if (!meshNodes)
+  {
+    return Error{"Missing mesh nodes block"};
+  }
+  if (!glCmds)
+  {
+    return Error{"Missing GL commands block"};
+  }
+
+  return FmModel{
+    .header = modelHeader,
+    .skins = std::move(*skins),
+    .frames = std::move(*frames),
+    .mesh_nodes = std::move(*meshNodes),
+    .glcmds = std::move(*glCmds),
+  };
 }
 
-static size_t initFrame(const FmModel& fmdl, gl::IndexRangeMap::Size& size)
+size_t initFrame(const FmModel& fmdl, gl::IndexRangeMap::Size& size)
 {
   int num_verts = 0;
 
@@ -325,7 +347,7 @@ static size_t initFrame(const FmModel& fmdl, gl::IndexRangeMap::Size& size)
   return static_cast<size_t>(num_verts);
 }
 
-static void buildFrame(
+void buildFrame(
   const FmModel& fmdl,
   const uint32_t frame_index,
   vm::bbox3f::builder& bounds,
@@ -394,9 +416,12 @@ static void buildFrame(
   }
 }
 
-static void buildModel(
-  const FmModel& fmdl, EntityModelData& model, EntityModelSurface& surface)
+EntityModelData buildModel(FmModel fmdl, std::string name)
 {
+  auto data = EntityModelData{PitchType::Normal, Orientation::Oriented};
+  auto& surface = data.addSurface(std::move(name), fmdl.header.num_frames);
+  surface.setSkins(std::move(fmdl.skins));
+
   for (uint32_t i = 0; i < fmdl.header.num_frames; i++)
   {
     // Init frame data.
@@ -409,10 +434,27 @@ static void buildModel(
     buildFrame(fmdl, i, bounds, builder);
 
     // Add to editor model.
-    auto& mdl_frame = model.addFrame(fmdl.frames[i].name, bounds.bounds());
+    auto& mdl_frame = data.addFrame(fmdl.frames[i].name, bounds.bounds());
     surface.addMesh(
       mdl_frame, std::move(builder.vertices()), std::move(builder.indices()));
   }
+
+  return data;
+}
+
+} // namespace
+
+bool canLoadFmModel(const std::filesystem::path& path, fs::Reader reader)
+{
+  if (!kdl::path_has_extension(kdl::path_to_lower(path), ".fm"))
+  {
+    return false;
+  }
+
+  const auto ident = reader.readString(FmLayout::HeaderNameLength);
+  const auto version = reader.readInt<int32_t>();
+
+  return ident == FmLayout::HeaderName && version == FmLayout::HeaderVersion;
 }
 
 Result<EntityModelData> loadFmModel(
@@ -434,51 +476,11 @@ Result<EntityModelData> loadFmModel(
     }
 
     // Load and validate model header (expected to be the first block).
-    FmModel fmdl{};
-    fmdl.header = reader.read<FmHeader, FmHeader>();
-
-    // Sanity checks.
-    if (
-      fmdl.header.skinwidth < 1 || fmdl.header.skinwidth > FmLayout::MaxSkinWidth
-      || fmdl.header.skinheight < 1 || fmdl.header.skinheight > FmLayout::MaxSkinHeight)
-    {
-      return Error{fmt::format(
-        "FM model has invalid skin size: {}x{}",
-        fmdl.header.skinwidth,
-        fmdl.header.skinheight)};
-    }
-
-    if (fmdl.header.num_xyz < 1 || fmdl.header.num_xyz > FmLayout::MaxVerts)
-    {
-      return Error{
-        fmt::format("FM model has invalid number of vertices: {}", fmdl.header.num_xyz)};
-    }
-
-    if (fmdl.header.num_tris < 1 || fmdl.header.num_tris > FmLayout::MaxTriangles)
-    {
-      return Error{fmt::format(
-        "FM model has invalid number of triangles: {}", fmdl.header.num_tris)};
-    }
-
-    if (fmdl.header.num_frames < 1 || fmdl.header.num_frames > FmLayout::MaxFrames)
-    {
-      return Error{
-        fmt::format("FM model has invalid number of frames: {}", fmdl.header.num_frames)};
-    }
-
-    // Load .fm model.
-    auto data = EntityModelData{PitchType::Normal, Orientation::Oriented};
-    auto& surface = data.addSurface(std::move(name), fmdl.header.num_frames);
-
-    if (!loadModel(fmdl, surface, reader, fs, logger))
-    {
-      return Error{fmt::format("Failed to load FM model")};
-    }
-
-    // Convert to editor format.
-    buildModel(fmdl, data, surface);
-
-    return data;
+    return loadModelHeader(reader) | kdl::and_then([&](const auto& modelHeader) {
+             return loadModel(modelHeader, reader, fs, logger);
+           })
+           | kdl::transform(
+             [&](auto model) { return buildModel(std::move(model), std::move(name)); });
   }
   catch (const fs::ReaderException& e)
   {
